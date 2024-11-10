@@ -3,18 +3,30 @@ const app = express();
 const cors = require('cors');
 require('dotenv').config();
 const cookieParser = require('cookie-parser');
-const port = 8080;
+const port = process.env.PORT || 8080; // Use environment PORT if available, default to 8080
+
+// Determine allowed origins for CORS based on environment
+const allowedOrigins = [
+  'http://localhost:3000',
+  process.env.REACT_APP_URL, // Add your deployed front-end URL as an allowed origin
+];
 
 // CORS configuration
 const corsOptions = {
-  origin: 'http://localhost:3000', 
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.options('*', cors(corsOptions)); // Preflight requests
 
 app.use(express.json());
 app.use(cookieParser());
